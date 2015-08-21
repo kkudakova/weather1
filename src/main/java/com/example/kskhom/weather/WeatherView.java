@@ -78,7 +78,9 @@ public class WeatherView extends LinearLayout {
         }
         date.setText(new StringBuilder()
                 // Month is 0 based, just add 1
-                .append(e.day).append("-").append(e.month + 1).append("-")
+                .append(e.day).append("-").append(e.month).append("-")
                 .append(e.year).append(" "));
+
+        this.invalidate();
     }
 }

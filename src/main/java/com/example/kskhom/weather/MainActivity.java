@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -41,20 +42,19 @@ public class MainActivity extends ActionBarActivity {
     ArrayList<WeatherView> listView;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tvDisplayDate = (TextView)findViewById(R.id.tvDisplayDate);
+        tvDisplayDate = (TextView) findViewById(R.id.tvDisplayDate);
         setCurrentDateOnView();
 
         listView = new ArrayList<WeatherView>();
 
         listView.add((WeatherView) findViewById(R.id.view1));
-        listView.add((WeatherView)findViewById(R.id.view2));
-        listView.add((WeatherView)findViewById(R.id.view3));
+        listView.add((WeatherView) findViewById(R.id.view2));
+        listView.add((WeatherView) findViewById(R.id.view3));
     }
 
     public void onclick(View view) {
@@ -155,46 +155,16 @@ public class MainActivity extends ActionBarActivity {
             return entries;
         }
 
-        protected void onPostExecute(List<Entry> entries)
-        {
-            setContentView(R.layout.activity_main);
-            int i=0;
+        protected void onPostExecute(List<Entry> entries) {
+            int i = 0;
             boolean found = false;
             // Displays the HTML string in the UI via a WebView
-            for(Entry entry:entries)
-            {
-                if (!found&&(entry.day == day)&&(entry.month -1 ==month)&&(entry.year == year))
-                {
-                    found = true;
-                    ImageView mImage = (ImageView)findViewById(R.id.weather_pic);
-                    switch(entry.cloudiness) {
-                        case "1":
-                            mImage.setImageResource(R.drawable.im1);
-                            break;
-                        case "2":
-                            mImage.setImageResource(R.drawable.im2);
-                            break;
-                        case "3":
-                            mImage.setImageResource(R.drawable.im3);
-                            break;
-                        case "4":
-                            mImage.setImageResource(R.drawable.im4);
-                            break;
-                    }
-                    tvDisplayDate.setText(new StringBuilder()
-                            // Month is 0 based, just add 1
-                            .append(entry.day).append("-").append(entry.month + 1).append("-")
-                            .append(entry.year).append(" "));
-                    temp = (TextView) findViewById(R.id.temp);
-                    humidity = (TextView) findViewById(R.id.humidity);
-                    temp.setText(entry.temperature+"°C");
-                    humidity.setText(entry.relwet+"%");
-                }
-                else{
-                    if(i<3){ listView.get(i).setParams(entry);}
-                    else {
-                        ImageView mImage = (ImageView)findViewById(R.id.weather_pic);
-                        switch(entry.cloudiness) {
+            if (entries != null) {
+                for (Entry entry : entries) {
+                    if (!found && (entry.day == day) && (entry.month - 1 == month) && (entry.year == year)) {
+                        found = true;
+                        ImageView mImage = (ImageView) findViewById(R.id.weather_pic);
+                        switch (entry.cloudiness) {
                             case "1":
                                 mImage.setImageResource(R.drawable.im1);
                                 break;
@@ -209,161 +179,190 @@ public class MainActivity extends ActionBarActivity {
                                 break;
                         }
 
+                        tvDisplayDate.setText(new StringBuilder()
+                                .append(entry.day).append("-").append(entry.month).append("-")
+                                .append(entry.year).append(" "));
                         temp = (TextView) findViewById(R.id.temp);
                         humidity = (TextView) findViewById(R.id.humidity);
-                        temp.setText(entry.temperature+"°C");
-                        humidity.setText(entry.relwet+"%");
-                        tvDisplayDate.setText(new StringBuilder()
-                                // Month is 0 based, just add 1
-                                .append(entry.day).append("-").append(entry.month + 1).append("-")
-                                .append(entry.year).append(" "));
-
-                    }
-                }
-            }
-        }
-    }
-
-
-        public class WeatherXmlParser {
-            // We don't use namespaces
-            private final String ns = null;
-
-            public List parse(InputStream in) throws XmlPullParserException, IOException {
-                try {
-                    XmlPullParser parser = Xml.newPullParser();
-                    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-                    parser.setInput(in, null);
-                    parser.nextTag();
-                    return readFeed(parser);
-                } finally {
-                    in.close();
-                }
-            }
-
-            private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-                List entries = new ArrayList();
-
-                parser.require(XmlPullParser.START_TAG, ns, "MMWEATHER");
-                while (parser.next() != XmlPullParser.END_TAG) {
-                    if (parser.getEventType() != XmlPullParser.START_TAG) {
-                        continue;
-                    }
-                    String name = parser.getName();
-                    // Starts by looking for the entry tag
-                    if (name.equals("FORECAST")) {
-                        entries.add(readEntry(parser));
+                        temp.setText(entry.temperature + "°C");
+                        humidity.setText(entry.relwet + "%");
                     } else {
-                        skip(parser);
+                        if (i < 3) {
+                            listView.get(i).setParams(entry);
+                            i++;
+                        } else {
+                            ImageView mImage = (ImageView) findViewById(R.id.weather_pic);
+                            switch (entry.cloudiness) {
+                                case "1":
+                                    mImage.setImageResource(R.drawable.im1);
+                                    break;
+                                case "2":
+                                    mImage.setImageResource(R.drawable.im2);
+                                    break;
+                                case "3":
+                                    mImage.setImageResource(R.drawable.im3);
+                                    break;
+                                case "4":
+                                    mImage.setImageResource(R.drawable.im4);
+                                    break;
+                            }
+
+                            temp = (TextView) findViewById(R.id.temp);
+                            humidity = (TextView) findViewById(R.id.humidity);
+                            temp.setText(entry.temperature + "°C");
+                            humidity.setText(entry.relwet + "%");
+                            tvDisplayDate.setText(new StringBuilder()
+                                    // Month is 0 based, just add 1
+                                    .append(entry.day).append("-").append(entry.month).append("-")
+                                    .append(entry.year).append(" "));
+
+                        }
                     }
                 }
-                return entries;
             }
-
-            private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
-                if (parser.getEventType() != XmlPullParser.START_TAG) {
-                    throw new IllegalStateException();
-                }
-                int depth = 1;
-                while (depth != 2) {
-                    switch (parser.next()) {
-                        case XmlPullParser.END_TAG:
-                            depth--;
-                            break;
-                        case XmlPullParser.START_TAG:
-                            depth++;
-                            break;
-                    }
-                }
-            }
-
-            // Parses the contents of an entry. If it encounters a PHENOMENA, TEMPERATURE, or RELWET tag, hands them off
-// to their respective "read" methods for processing. Otherwise, skips the tag.
-            private Entry readEntry(XmlPullParser parser) throws XmlPullParserException, IOException {
-                parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
-                String cloudiness = null;
-                String temperature = null;
-                String relwet = null;
-
-                int day = readDay(parser);
-                int month = readMonth(parser);
-                int year = readYear(parser);
-                while (!((parser.next() == XmlPullParser.END_TAG)&&(parser.getName().equals("FORECAST")))) {
-                    if (parser.getEventType() != XmlPullParser.START_TAG) {
-                        continue;
-                    }
-                    String name = parser.getName();
-                    if (name.equals("PHENOMENA")) {
-                        cloudiness = readCloudiness(parser);
-                    } else if (name.equals("TEMPERATURE")) {
-                        temperature = readMaxTemperature(parser);
-                    } else if (name.equals("RELWET")) {
-                        relwet = readMaxRelwet(parser);
-                   }
-                }
-                return new Entry(cloudiness, temperature, relwet, day, month, year);
-            }
-
-            // Processes PHENOMENA in the feed.
-            private String readCloudiness(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "PHENOMENA");
-                String relwet = readText(parser, "cloudiness");
-                return relwet;
-            }
-
-            // Processes day in the feed.
-            private int readDay(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
-                int day = Integer.parseInt(readText(parser, "day"));
-                return day;
-            }
-
-            // Processes month in the feed.
-            private int readMonth(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
-                int month = Integer.parseInt(readText(parser, "month"));
-                return month;
-            }
-
-            // Processes year in the feed.
-            private int readYear(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
-                int year = Integer.parseInt(readText(parser, "year"));
-                return year;
-            }
-
-            // Processes TEMPERATURE tags in the feed.
-            private String readMaxTemperature(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "TEMPERATURE");
-                String relwet = readText(parser, "max");
-                return relwet;
-            }
-
-            // Processes RELWET tags in the feed.
-            private String readMaxRelwet(XmlPullParser parser) throws IOException, XmlPullParserException {
-                parser.require(XmlPullParser.START_TAG, ns, "RELWET");
-                String relwet = readText(parser, "max");
-                return relwet;
-            }
-
-            private String readText(XmlPullParser parser, String attr) throws IOException, XmlPullParserException {
-                String result = "";
-                result = parser.getAttributeValue(null, attr);
-                return result;
-            }
-        }
-
-        // Given a string representation of a URL, sets up a connection and gets
-// an input stream.
-        private InputStream downloadUrl(String urlString) throws IOException {
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000 /* milliseconds */);
-            conn.setConnectTimeout(15000 /* milliseconds */);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            // Starts the query
-            conn.connect();
-            return conn.getInputStream();
         }
     }
+
+
+    public class WeatherXmlParser {
+        // We don't use namespaces
+        private final String ns = null;
+
+        public List parse(InputStream in) throws XmlPullParserException, IOException {
+            try {
+                XmlPullParser parser = Xml.newPullParser();
+                parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+                parser.setInput(in, null);
+                parser.nextTag();
+                return readFeed(parser);
+            } finally {
+                in.close();
+            }
+        }
+
+        private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+            List entries = new ArrayList();
+
+            parser.require(XmlPullParser.START_TAG, ns, "MMWEATHER");
+            while (parser.next() != XmlPullParser.END_TAG) {
+                if (parser.getEventType() != XmlPullParser.START_TAG) {
+                    continue;
+                }
+                String name = parser.getName();
+                // Starts by looking for the entry tag
+                if (name.equals("FORECAST")) {
+                    entries.add(readEntry(parser));
+                } else {
+                    skip(parser);
+                }
+            }
+            return entries;
+        }
+
+        private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                throw new IllegalStateException();
+            }
+            int depth = 1;
+            while (depth != 2) {
+                switch (parser.next()) {
+                    case XmlPullParser.END_TAG:
+                        depth--;
+                        break;
+                    case XmlPullParser.START_TAG:
+                        depth++;
+                        break;
+                }
+            }
+        }
+
+        // Parses the contents of an entry. If it encounters a PHENOMENA, TEMPERATURE, or RELWET tag, hands them off
+// to their respective "read" methods for processing. Otherwise, skips the tag.
+        private Entry readEntry(XmlPullParser parser) throws XmlPullParserException, IOException {
+            parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
+            String cloudiness = null;
+            String temperature = null;
+            String relwet = null;
+
+            int day = readDay(parser);
+            int month = readMonth(parser);
+            int year = readYear(parser);
+            while (!((parser.next() == XmlPullParser.END_TAG) && (parser.getName().equals("FORECAST")))) {
+                if (parser.getEventType() != XmlPullParser.START_TAG) {
+                    continue;
+                }
+                String name = parser.getName();
+                if (name.equals("PHENOMENA")) {
+                    cloudiness = readCloudiness(parser);
+                } else if (name.equals("TEMPERATURE")) {
+                    temperature = readMaxTemperature(parser);
+                } else if (name.equals("RELWET")) {
+                    relwet = readMaxRelwet(parser);
+                }
+            }
+            return new Entry(cloudiness, temperature, relwet, day, month, year);
+        }
+
+        // Processes PHENOMENA in the feed.
+        private String readCloudiness(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "PHENOMENA");
+            String relwet = readText(parser, "cloudiness");
+            return relwet;
+        }
+
+        // Processes day in the feed.
+        private int readDay(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
+            int day = Integer.parseInt(readText(parser, "day"));
+            return day;
+        }
+
+        // Processes month in the feed.
+        private int readMonth(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
+            int month = Integer.parseInt(readText(parser, "month"));
+            return month;
+        }
+
+        // Processes year in the feed.
+        private int readYear(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "FORECAST");
+            int year = Integer.parseInt(readText(parser, "year"));
+            return year;
+        }
+
+        // Processes TEMPERATURE tags in the feed.
+        private String readMaxTemperature(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "TEMPERATURE");
+            String relwet = readText(parser, "max");
+            return relwet;
+        }
+
+        // Processes RELWET tags in the feed.
+        private String readMaxRelwet(XmlPullParser parser) throws IOException, XmlPullParserException {
+            parser.require(XmlPullParser.START_TAG, ns, "RELWET");
+            String relwet = readText(parser, "max");
+            return relwet;
+        }
+
+        private String readText(XmlPullParser parser, String attr) throws IOException, XmlPullParserException {
+            String result = "";
+            result = parser.getAttributeValue(null, attr);
+            return result;
+        }
+    }
+
+    // Given a string representation of a URL, sets up a connection and gets
+// an input stream.
+    private InputStream downloadUrl(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(10000 /* milliseconds */);
+        conn.setConnectTimeout(15000 /* milliseconds */);
+        conn.setRequestMethod("GET");
+        conn.setDoInput(true);
+        // Starts the query
+        conn.connect();
+        return conn.getInputStream();
+    }
+}
